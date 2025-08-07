@@ -1,5 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { authApi } from '../../services/api/authApi';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, User as FirebaseUser } from "firebase/auth";
+import { setDoc, doc } from "firebase/firestore";
+import { auth, db } from '../../services/firebase';
 
 export interface User {
   id: number;
@@ -31,13 +33,27 @@ const initialState: AuthState = {
 
 export const login = createAsyncThunk(
   'auth/login',
-  async (credentials: { username: string; password: string }, { rejectWithValue }) => {
+  async (credentials: { username?: string; email?: string; password: string }, { rejectWithValue }) => {
     try {
-      const response = await authApi.login(credentials);
-      localStorage.setItem('token', response.token);
-      return response;
+      // E-posta ile giriş
+      const email = credentials.email || credentials.username;
+      if (!email) throw new Error('E-posta gereklidir');
+      const userCredential = await signInWithEmailAndPassword(auth, email, credentials.password);
+      const user = userCredential.user;
+      // Firebase token al
+      const token = await user.getIdToken();
+      localStorage.setItem('token', token);
+      return {
+        user: {
+          id: user.uid,
+          username: user.displayName || '',
+          email: user.email || '',
+          role: 'user',
+        },
+        token,
+      };
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Giriş başarısız');
+      return rejectWithValue(error.message || 'Giriş başarısız');
     }
   }
 );
@@ -45,18 +61,40 @@ export const login = createAsyncThunk(
 export const register = createAsyncThunk(
   'auth/register',
   async (userData: {
-    username: string;
+    username?: string;
     email: string;
     password: string;
+    role?: string;
     firstName?: string;
     lastName?: string;
   }, { rejectWithValue }) => {
     try {
-      const response = await authApi.register(userData);
-      localStorage.setItem('token', response.token);
-      return response;
+      const userCredential = await createUserWithEmailAndPassword(auth, userData.email, userData.password);
+      const user = userCredential.user;
+      // Firestore'a kullanıcıyı rol ile kaydet
+      await setDoc(doc(db, "users", user.uid), {
+        uid: user.uid,
+        username: userData.username || '',
+        email: user.email || '',
+        role: userData.role || 'user',
+        firstName: userData.firstName || '',
+        lastName: userData.lastName || '',
+        createdAt: new Date().toISOString(),
+      });
+      // Firebase token al
+      const token = await user.getIdToken();
+      localStorage.setItem('token', token);
+      return {
+        user: {
+          id: user.uid,
+          username: userData.username || '',
+          email: user.email || '',
+          role: userData.role || 'user',
+        },
+        token,
+      };
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Kayıt başarısız');
+      return rejectWithValue(error.message || 'Kayıt başarısız');
     }
   }
 );
@@ -64,6 +102,7 @@ export const register = createAsyncThunk(
 export const logout = createAsyncThunk(
   'auth/logout',
   async () => {
+    await signOut(auth);
     localStorage.removeItem('token');
     return null;
   }

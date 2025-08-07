@@ -13,6 +13,7 @@ import {
   XMarkIcon
 } from '@heroicons/react/24/outline';
 import { RootState } from '../../store';
+import CommentSection from '../../components/CommentSection';
 
 interface PetProfile {
   id: number;
@@ -45,6 +46,10 @@ interface PetProfile {
     email: string;
     city: string;
   };
+  healthRecords?: { date: string; type: string; note: string }[];
+  vaccinationRecords?: { date: string; vaccine: string; note: string }[];
+  memorial?: boolean;
+  memorialNote?: string;
 }
 
 const PetProfilePage: React.FC = () => {
@@ -87,7 +92,17 @@ const PetProfilePage: React.FC = () => {
         lastName: 'Yılmaz',
         email: 'ahmet@example.com',
         city: 'İstanbul'
-      }
+      },
+      healthRecords: [
+        { date: '2023-10-01', type: 'Kontrol', note: 'Sağlıklı' },
+        { date: '2023-11-15', type: 'Aşı', note: 'Korona aşısı' }
+      ],
+      vaccinationRecords: [
+        { date: '2023-09-01', vaccine: 'Korona', note: 'İlk aşı' },
+        { date: '2023-10-15', vaccine: 'Korona', note: 'İkinci aşı' }
+      ],
+      memorial: true,
+      memorialNote: 'Max, ailesine göre çok sevimli ve oyunsever bir dost. Çocuklarla çok iyi anlaşır ve eğitim almaya açık.'
     };
 
     setTimeout(() => {
@@ -288,6 +303,43 @@ const PetProfilePage: React.FC = () => {
                 )}
               </div>
             )}
+            {/* Sağlık ve aşı kayıtları, video ve anı sayfası gösterimi */}
+            {pet.healthRecords && pet.healthRecords.length > 0 && (
+              <div className="bg-white rounded-lg shadow p-4 mb-6">
+                <h3 className="font-bold mb-2">Sağlık Kayıtları</h3>
+                <ul className="list-disc pl-5">
+                  {pet.healthRecords.map((rec, i) => (
+                    <li key={i}>{rec.date} - {rec.type} - {rec.note}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {pet.vaccinationRecords && pet.vaccinationRecords.length > 0 && (
+              <div className="bg-white rounded-lg shadow p-4 mb-6">
+                <h3 className="font-bold mb-2">Aşı Kayıtları</h3>
+                <ul className="list-disc pl-5">
+                  {pet.vaccinationRecords.map((rec, i) => (
+                    <li key={i}>{rec.date} - {rec.vaccine} - {rec.note}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {pet.videoUrls && pet.videoUrls.length > 0 && (
+              <div className="bg-white rounded-lg shadow p-4 mb-6">
+                <h3 className="font-bold mb-2">Videolar</h3>
+                <div className="flex flex-wrap gap-4">
+                  {pet.videoUrls.map((url, i) => (
+                    <video key={i} src={url} controls className="w-64 h-40 rounded" />
+                  ))}
+                </div>
+              </div>
+            )}
+            {pet.memorial && (
+              <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded mb-6">
+                <h3 className="font-bold text-yellow-700 mb-2">Anı Sayfası</h3>
+                <div className="text-yellow-800">{pet.memorialNote}</div>
+              </div>
+            )}
           </div>
 
           {/* Sidebar */}
@@ -378,6 +430,9 @@ const PetProfilePage: React.FC = () => {
             </div>
           </div>
         </div>
+        {pet && (
+          <CommentSection contentId={String(pet.id)} />
+        )}
       </div>
     </div>
   );

@@ -8,14 +8,15 @@ import { RootState } from '../../store';
 import toast from 'react-hot-toast';
 
 interface RegisterFormData {
-  username: string;
+  username?: string;
   email: string;
   password: string;
   confirmPassword: string;
-  firstName: string;
-  lastName: string;
-  phoneNumber: string;
+  firstName?: string;
+  lastName?: string;
+  phoneNumber?: string;
   acceptTerms: boolean;
+  role: string;
 }
 
 const RegisterPage: React.FC = () => {
@@ -30,13 +31,13 @@ const RegisterPage: React.FC = () => {
     handleSubmit,
     watch,
     formState: { errors },
-  } = useForm<RegisterFormData>();
+  } = useForm<RegisterFormData>({ defaultValues: { role: 'user' } });
 
   const password = watch('password');
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
-      await dispatch(registerUser(data) as any);
+      await dispatch(registerUser({ ...data, role: data.role }) as any);
       toast.success('Hesabınız başarıyla oluşturuldu!');
       navigate('/dashboard');
     } catch (error) {
@@ -74,7 +75,6 @@ const RegisterPage: React.FC = () => {
               </label>
               <input
                 {...register('username', {
-                  required: 'Kullanıcı adı gereklidir',
                   minLength: {
                     value: 3,
                     message: 'Kullanıcı adı en az 3 karakter olmalıdır',
@@ -98,21 +98,21 @@ const RegisterPage: React.FC = () => {
             {/* Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                E-posta Adresi
+                E-posta
               </label>
               <input
                 {...register('email', {
-                  required: 'E-posta adresi gereklidir',
+                  required: 'E-posta gereklidir',
                   pattern: {
-                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                    message: 'Geçerli bir e-posta adresi giriniz',
+                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                    message: 'Geçerli bir e-posta girin',
                   },
                 })}
                 type="email"
                 className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm ${
                   errors.email ? 'border-red-300' : 'border-gray-300'
                 }`}
-                placeholder="ornek@email.com"
+                placeholder="eposta@ornek.com"
               />
               {errors.email && (
                 <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
@@ -252,6 +252,20 @@ const RegisterPage: React.FC = () => {
               {errors.confirmPassword && (
                 <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
               )}
+            </div>
+
+            {/* Role Selection */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Kullanıcı Tipi</label>
+              <select
+                {...register('role', { required: 'Kullanıcı tipi seçiniz' })}
+                className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+              >
+                <option value="user">Bireysel Kullanıcı</option>
+                <option value="shelter">Barınak / Dernek</option>
+                <option value="vet">Veteriner</option>
+              </select>
+              {errors.role && <p className="mt-1 text-sm text-red-600">{errors.role.message}</p>}
             </div>
 
             {/* Terms */}

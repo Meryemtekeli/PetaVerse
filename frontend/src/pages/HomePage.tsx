@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   HeartIcon, 
@@ -10,8 +10,20 @@ import {
   ChatBubbleLeftRightIcon,
   ShieldCheckIcon
 } from '@heroicons/react/24/outline';
+import { getRandomDogImage } from '../services/api/externalApi';
+import SearchBar from '../components/SearchBar';
 
 const HomePage: React.FC = () => {
+  const [dogImage, setDogImage] = useState<string | null>(null);
+  useEffect(() => {
+    getRandomDogImage().then(setDogImage);
+  }, []);
+
+  const handleSearch = (query: string, type: string, city: string) => {
+    // TODO: Arama ve filtreleme işlemleri burada yapılacak
+    alert(`Arama: ${query}, Tür: ${type}, Şehir: ${city}`);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50">
       {/* Hero Section */}
@@ -49,6 +61,12 @@ const HomePage: React.FC = () => {
           <div className="absolute inset-0 bg-[url('/images/hero-bg.jpg')] bg-cover bg-center opacity-10"></div>
         </div>
       </section>
+
+      {dogImage && (
+        <div className="flex justify-center my-8">
+          <img src={dogImage} alt="Rastgele köpek" className="rounded shadow max-h-64" />
+        </div>
+      )}
 
       {/* Features Section */}
       <section className="py-20 bg-white">
@@ -263,6 +281,9 @@ const HomePage: React.FC = () => {
           </div>
         </div>
       </footer>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+        <SearchBar onSearch={handleSearch} />
+      </div>
     </div>
   );
 };

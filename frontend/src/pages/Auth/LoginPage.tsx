@@ -8,7 +8,7 @@ import { RootState } from '../../store';
 import toast from 'react-hot-toast';
 
 interface LoginFormData {
-  username: string;
+  email: string;
   password: string;
 }
 
@@ -58,30 +58,30 @@ const LoginPage: React.FC = () => {
         <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
-              <label htmlFor="username" className="sr-only">
-                Kullanıcı Adı
+              <label htmlFor="email" className="sr-only">
+                E-posta
               </label>
               <input
-                {...register('username', {
-                  required: 'Kullanıcı adı gereklidir',
-                  minLength: {
-                    value: 3,
-                    message: 'Kullanıcı adı en az 3 karakter olmalıdır',
+                {...register('email', {
+                  required: 'E-posta gereklidir',
+                  pattern: {
+                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                    message: 'Geçerli bir e-posta girin',
                   },
                 })}
-                id="username"
-                name="username"
-                type="text"
-                autoComplete="username"
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
                 className={`appearance-none rounded-none relative block w-full px-3 py-2 border ${
-                  errors.username
+                  errors.email
                     ? 'border-red-300 placeholder-red-500 text-red-900 focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm'
                     : 'border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm'
                 }`}
-                placeholder="Kullanıcı Adı"
+                placeholder="E-posta"
               />
-              {errors.username && (
-                <p className="mt-1 text-sm text-red-600">{errors.username.message}</p>
+              {errors.email && (
+                <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
               )}
             </div>
 
