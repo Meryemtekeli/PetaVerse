@@ -10,50 +10,19 @@ import {
 } from '@heroicons/react/24/outline';
 import { RootState } from '../../store';
 import { logout } from '../../store/slices/authSlice';
-import NotificationsPanel from '../NotificationsPanel';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
-import { db } from '../../services/firebase';
+import { NotificationBell } from '../Notifications/NotificationBell';
 
 const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
   const dispatch = useDispatch();
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
-  const notificationsRef = useRef<HTMLDivElement>(null);
 
   const handleLogout = () => {
     dispatch(logout());
     setIsProfileMenuOpen(false);
   };
 
-  useEffect(() => {
-    if (!user?.id) return;
-
-    const q = query(
-      collection(db, "notifications"),
-      where("userId", "==", user.id),
-      where("read", "==", false)
-    );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      setUnreadNotificationsCount(snapshot.size);
-    });
-
-    return () => unsubscribe();
-  }, [user]);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (notificationsRef.current && !notificationsRef.current.contains(event.target as Node)) {
-        setIsNotificationsOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   return (
     <nav className="bg-white shadow-lg">
@@ -88,28 +57,19 @@ const Navbar: React.FC = () => {
             <Link to="/map" className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">
               Harita
             </Link>
+            <Link to="/ai" className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">
+              AI Asistan
+            </Link>
+            {user?.role === 'admin' && (
+              <Link to="/analytics" className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">
+                Analitik
+              </Link>
+            )}
           </div>
 
           <div className="flex items-center space-x-4">
             {/* Notifications */}
-            {isAuthenticated && (
-              <div className="relative" ref={notificationsRef}>
-                <button
-                  onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-                  className="p-2 text-gray-400 hover:text-gray-500 relative"
-                >
-                  <BellIcon className="h-6 w-6" />
-                  {unreadNotificationsCount > 0 && (
-                    <span className="absolute top-0 right-0 block h-4 w-4 rounded-full bg-red-500 text-white text-xs flex items-center justify-center">
-                      {unreadNotificationsCount}
-                    </span>
-                  )}
-                </button>
-                {isNotificationsOpen && (
-                  <NotificationsPanel onClose={() => setIsNotificationsOpen(false)} />
-                )}
-              </div>
-            )}
+            {isAuthenticated && <NotificationBell />}
 
             {/* Profile Menu */}
             {isAuthenticated ? (
