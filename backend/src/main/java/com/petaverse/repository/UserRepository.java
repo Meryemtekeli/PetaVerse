@@ -49,4 +49,18 @@ public interface UserRepository extends JpaRepository<User, Long> {
     
     @Query("SELECT COUNT(u) FROM User u WHERE u.createdAt >= :startDate")
     Long countUsersCreatedAfter(@Param("startDate") java.time.LocalDateTime startDate);
+    
+    List<User> findByLocationContainingIgnoreCase(String location);
+    
+    @Query("SELECT u FROM User u WHERE u.name ILIKE %:name% OR u.username ILIKE %:name%")
+    List<User> findByNameContainingIgnoreCase(@Param("name") String name);
+    
+    @Query("SELECT u FROM User u WHERE u.location ILIKE %:location%")
+    List<User> findByLocationContaining(@Param("location") String location);
+    
+    @Query("SELECT u FROM User u WHERE u.role = :role")
+    List<User> findByRole(@Param("role") String role);
+    
+    @Query("SELECT u FROM User u WHERE (u.name ILIKE %:name% OR u.username ILIKE %:name%) AND (u.location ILIKE %:location%) AND (u.role = :role OR :role IS NULL)")
+    List<User> searchUsers(@Param("name") String name, @Param("location") String location, @Param("role") String role);
 } 

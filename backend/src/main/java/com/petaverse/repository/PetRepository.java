@@ -64,6 +64,12 @@ public interface PetRepository extends JpaRepository<Pet, Long> {
     @Query("SELECT p FROM Pet p WHERE p.owner.city LIKE %:city%")
     Page<Pet> findByOwnerCityContainingIgnoreCase(@Param("city") String city, Pageable pageable);
     
+    List<Pet> findByNameContainingIgnoreCase(String name);
+    
+    List<Pet> findByBreedContainingIgnoreCase(String breed);
+    
+    List<Pet> findByOwnerCityContainingIgnoreCase(String city);
+    
     @Query("SELECT COUNT(p) FROM Pet p WHERE p.owner.id = :ownerId")
     Long countPetsByOwnerId(@Param("ownerId") Long ownerId);
     
@@ -75,4 +81,25 @@ public interface PetRepository extends JpaRepository<Pet, Long> {
     
     @Query("SELECT p.type, COUNT(p) FROM Pet p GROUP BY p.type")
     List<Object[]> countByType();
+    
+    @Query("SELECT p.gender, COUNT(p) FROM Pet p WHERE p.gender IS NOT NULL GROUP BY p.gender")
+    List<Object[]> countByGender();
+    
+    @Query("SELECT p.size, COUNT(p) FROM Pet p WHERE p.size IS NOT NULL GROUP BY p.size")
+    List<Object[]> countBySize();
+    
+    @Query("SELECT COUNT(p) FROM Pet p WHERE p.isVaccinated = :vaccinated")
+    Long countByVaccinated(@Param("vaccinated") boolean vaccinated);
+    
+    @Query("SELECT COUNT(p) FROM Pet p WHERE p.isNeutered = :neutered")
+    Long countByNeutered(@Param("neutered") boolean neutered);
+    
+    @Query("SELECT COUNT(p) FROM Pet p WHERE p.isMicrochipped = :microchipped")
+    Long countByMicrochipped(@Param("microchipped") boolean microchipped);
+    
+    @Query("SELECT AVG(p.age) FROM Pet p WHERE p.age IS NOT NULL")
+    Double findAverageAge();
+    
+    @Query("SELECT AVG(p.weight) FROM Pet p WHERE p.weight IS NOT NULL")
+    Double findAverageWeight();
 } 
