@@ -263,4 +263,18 @@ public class AdoptionListing {
     public int getApplicationCount() {
         return applications != null ? applications.size() : 0;
     }
+    
+    // Helper method for chat compatibility
+    public User getOwner() {
+        return this.user;
+    }
+    
+    public void setOwner(User owner) {
+        this.user = owner;
+    }
+    
+    // Helper method to get pet images
+    public List<String> getImages() {
+        return pet != null ? pet.getImages() : new ArrayList<>();
+    }
 } 

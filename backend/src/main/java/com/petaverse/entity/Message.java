@@ -35,6 +35,10 @@ public class Message {
     @JoinColumn(name = "adoption_listing_id")
     private AdoptionListing adoptionListing;
     
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "chat_room_id")
+    private ChatRoom chatRoom;
+    
     @Enumerated(EnumType.STRING)
     private MessageType type = MessageType.TEXT;
     
@@ -49,6 +53,8 @@ public class Message {
     private LocalDateTime createdAt;
     
     private LocalDateTime readAt;
+    
+    private boolean isRead = false;
     
     public Message() {}
     
@@ -145,5 +151,21 @@ public class Message {
     
     public void setReadAt(LocalDateTime readAt) {
         this.readAt = readAt;
+    }
+    
+    public ChatRoom getChatRoom() {
+        return chatRoom;
+    }
+    
+    public void setChatRoom(ChatRoom chatRoom) {
+        this.chatRoom = chatRoom;
+    }
+    
+    public boolean isRead() {
+        return isRead;
+    }
+    
+    public void setRead(boolean read) {
+        isRead = read;
     }
 } 

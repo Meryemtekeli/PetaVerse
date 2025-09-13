@@ -191,6 +191,11 @@ public class User {
         this.profileImageUrl = profileImageUrl;
     }
     
+    // Helper method for chat compatibility
+    public String getProfileImage() {
+        return this.profileImageUrl;
+    }
+    
     public UserRole getRole() {
         return role;
     }
