@@ -55,4 +55,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         return null;
     }
+
+    public String extractUsername(String token) {
+        return jwtService.getUserNameFromJwtToken(token);
+    }
 } 
