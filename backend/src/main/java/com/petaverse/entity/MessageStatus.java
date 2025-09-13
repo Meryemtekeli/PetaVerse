@@ -1,5 +1,9 @@
 package com.petaverse.entity;
 
 public enum MessageStatus {
-    UNREAD, READ, DELETED
+    SENT,       // Gönderildi
+    DELIVERED,  // Teslim edildi
+    READ,       // Okundu
+    UNREAD,     // Okunmadı
+    FAILED      // Başarısız
 } 

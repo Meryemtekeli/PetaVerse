@@ -41,6 +41,8 @@ public class Message {
     @Enumerated(EnumType.STRING)
     private MessageStatus status = MessageStatus.UNREAD;
     
+    private String conversationId;
+    
     private String attachmentUrl;
     
     @CreatedDate
@@ -111,6 +113,14 @@ public class Message {
     
     public void setStatus(MessageStatus status) {
         this.status = status;
+    }
+    
+    public String getConversationId() {
+        return conversationId;
+    }
+    
+    public void setConversationId(String conversationId) {
+        this.conversationId = conversationId;
     }
     
     public String getAttachmentUrl() {
