@@ -45,6 +45,12 @@ spring:
     multipart:
       max-file-size: 10MB
       max-request-size: 10MB
+  
+  # WebSocket Configuration
+  websocket:
+    allowed-origins: 
+      - http://localhost:3000
+      - http://localhost:8081
 
 # Server Configuration
 server:
