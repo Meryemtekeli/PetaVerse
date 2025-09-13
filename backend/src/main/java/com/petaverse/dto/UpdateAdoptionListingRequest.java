@@ -28,6 +28,8 @@ public class UpdateAdoptionListingRequest {
     @Size(max = 500, message = "İletişim bilgileri en fazla 500 karakter olabilir")
     private String contactInfo;
     
+    private String status;
+    
     private Boolean isUrgent;
     
     public UpdateAdoptionListingRequest() {}
@@ -103,6 +105,14 @@ public class UpdateAdoptionListingRequest {
     
     public void setContactInfo(String contactInfo) {
         this.contactInfo = contactInfo;
+    }
+    
+    public String getStatus() {
+        return status;
+    }
+    
+    public void setStatus(String status) {
+        this.status = status;
     }
     
     public Boolean getIsUrgent() {

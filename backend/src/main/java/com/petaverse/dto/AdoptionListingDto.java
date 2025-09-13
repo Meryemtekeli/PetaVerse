@@ -9,12 +9,15 @@ import java.util.List;
 public class AdoptionListingDto {
     
     private Long id;
+    private Long petId;
+    private Long ownerId;
     private String title;
     private String description;
     private PetDto pet;
     private UserDto user;
     private AdoptionStatus status;
     private ListingType type;
+    private String listingType;
     private Double adoptionFee;
     private String location;
     private Double latitude;
@@ -40,6 +43,22 @@ public class AdoptionListingDto {
     
     public void setId(Long id) {
         this.id = id;
+    }
+    
+    public Long getPetId() {
+        return petId;
+    }
+    
+    public void setPetId(Long petId) {
+        this.petId = petId;
+    }
+    
+    public Long getOwnerId() {
+        return ownerId;
+    }
+    
+    public void setOwnerId(Long ownerId) {
+        this.ownerId = ownerId;
     }
     
     public String getTitle() {
@@ -88,6 +107,14 @@ public class AdoptionListingDto {
     
     public void setType(ListingType type) {
         this.type = type;
+    }
+    
+    public String getListingType() {
+        return listingType;
+    }
+    
+    public void setListingType(String listingType) {
+        this.listingType = listingType;
     }
     
     public Double getAdoptionFee() {

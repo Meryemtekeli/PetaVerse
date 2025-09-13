@@ -49,6 +49,8 @@ public class UpdatePetRequest {
     @Size(max = 50, message = "Mikroçip numarası en fazla 50 karakter olabilir")
     private String microchipNumber;
     
+    private String status;
+    
     public UpdatePetRequest() {}
     
     // Getters and Setters
@@ -178,5 +180,13 @@ public class UpdatePetRequest {
     
     public void setMicrochipNumber(String microchipNumber) {
         this.microchipNumber = microchipNumber;
+    }
+    
+    public String getStatus() {
+        return status;
+    }
+    
+    public void setStatus(String status) {
+        this.status = status;
     }
 } 

@@ -21,6 +21,8 @@ public class CreateAdoptionListingRequest {
     @NotNull(message = "İlan türü seçilmelidir")
     private ListingType type;
     
+    private String listingType;
+    
     private Double adoptionFee;
     
     @NotBlank(message = "Konum bilgisi gereklidir")
@@ -72,6 +74,14 @@ public class CreateAdoptionListingRequest {
     
     public void setType(ListingType type) {
         this.type = type;
+    }
+    
+    public String getListingType() {
+        return listingType;
+    }
+    
+    public void setListingType(String listingType) {
+        this.listingType = listingType;
     }
     
     public Double getAdoptionFee() {

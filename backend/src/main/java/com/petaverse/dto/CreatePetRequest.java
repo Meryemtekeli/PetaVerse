@@ -1,11 +1,15 @@
-package com.petaverse.dto;
 
+package com.petaverse.dto;
+import com.petaverse.entity.PetStatus;
 import com.petaverse.entity.PetType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Past;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public class CreatePetRequest {
     
@@ -22,22 +26,35 @@ public class CreatePetRequest {
     @Size(max = 50, message = "Renk en fazla 50 karakter olabilir")
     private String color;
     
+    @Past(message = "Doğum tarihi geçmiş bir tarih olmalıdır")
     private LocalDate birthDate;
     
-    private Double weight;
+    @Positive(message = "Kilo pozitif bir değer olmalıdır")
+    private Double weight; // kg cinsinden
     
-    @Size(max = 20, message = "Cinsiyet en fazla 20 karakter olabilir")
-    private String gender;
+    @Size(max = 10, message = "Cinsiyet en fazla 10 karakter olabilir")
+    private String gender; // MALE, FEMALE
     
     @Size(max = 20, message = "Boyut en fazla 20 karakter olabilir")
-    private String size;
+    private String size; // SMALL, MEDIUM, LARGE
     
     @Size(max = 1000, message = "Açıklama en fazla 1000 karakter olabilir")
     private String description;
     
-    private boolean isNeutered;
+    // Yeni eklenen alanlar
+    @Size(max = 255, message = "Ana resim URL'si en fazla 255 karakter olabilir")
+    private String mainImageUrl;
     
-    private boolean isVaccinated;
+    private List<String> imageUrls;
+    
+    private List<String> videoUrls;
+    
+    @NotNull(message = "Evcil hayvan durumu seçilmelidir")
+    private PetStatus status = PetStatus.ACTIVE;
+    
+    private boolean isNeutered = false;
+    
+    private boolean isVaccinated = false;
     
     @Size(max = 500, message = "Sağlık notları en fazla 500 karakter olabilir")
     private String healthNotes;
@@ -48,10 +65,14 @@ public class CreatePetRequest {
     @Size(max = 500, message = "Özel ihtiyaçlar en fazla 500 karakter olabilir")
     private String specialNeeds;
     
-    private boolean isMicrochipped;
+    private boolean isMicrochipped = false;
     
     @Size(max = 50, message = "Mikroçip numarası en fazla 50 karakter olabilir")
     private String microchipNumber;
+    
+    // Owner ID field'ı ekleniyor
+    @NotNull(message = "Sahip ID'si gereklidir")
+    private Long ownerId;
     
     public CreatePetRequest() {}
     
@@ -128,6 +149,38 @@ public class CreatePetRequest {
         this.description = description;
     }
     
+    public String getMainImageUrl() {
+        return mainImageUrl;
+    }
+    
+    public void setMainImageUrl(String mainImageUrl) {
+        this.mainImageUrl = mainImageUrl;
+    }
+    
+    public List<String> getImageUrls() {
+        return imageUrls;
+    }
+    
+    public void setImageUrls(List<String> imageUrls) {
+        this.imageUrls = imageUrls;
+    }
+    
+    public List<String> getVideoUrls() {
+        return videoUrls;
+    }
+    
+    public void setVideoUrls(List<String> videoUrls) {
+        this.videoUrls = videoUrls;
+    }
+    
+    public PetStatus getStatus() {
+        return status;
+    }
+    
+    public void setStatus(PetStatus status) {
+        this.status = status;
+    }
+    
     public boolean isNeutered() {
         return isNeutered;
     }
@@ -182,5 +235,41 @@ public class CreatePetRequest {
     
     public void setMicrochipNumber(String microchipNumber) {
         this.microchipNumber = microchipNumber;
+    }
+    
+    public Long getOwnerId() {
+        return ownerId;
+    }
+    
+    public void setOwnerId(Long ownerId) {
+        this.ownerId = ownerId;
+    }
+    
+    // toString method'u ekleniyor
+    @Override
+    public String toString() {
+        return "CreatePetRequest{" +
+                "name='" + name + '\'' +
+                ", type=" + type +
+                ", breed='" + breed + '\'' +
+                ", color='" + color + '\'' +
+                ", birthDate=" + birthDate +
+                ", weight=" + weight +
+                ", gender='" + gender + '\'' +
+                ", size='" + size + '\'' +
+                ", description='" + description + '\'' +
+                ", mainImageUrl='" + mainImageUrl + '\'' +
+                ", imageUrls=" + imageUrls +
+                ", videoUrls=" + videoUrls +
+                ", status=" + status +
+                ", isNeutered=" + isNeutered +
+                ", isVaccinated=" + isVaccinated +
+                ", healthNotes='" + healthNotes + '\'' +
+                ", behaviorNotes='" + behaviorNotes + '\'' +
+                ", specialNeeds='" + specialNeeds + '\'' +
+                ", isMicrochipped=" + isMicrochipped +
+                ", microchipNumber='" + microchipNumber + '\'' +
+                ", ownerId=" + ownerId +
+                '}';
     }
 } 
