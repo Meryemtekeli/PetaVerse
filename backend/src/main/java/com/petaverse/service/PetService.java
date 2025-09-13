@@ -3,6 +3,7 @@ package com.petaverse.service;
 import com.petaverse.dto.PetDto;
 import com.petaverse.dto.CreatePetRequest;
 import com.petaverse.dto.UpdatePetRequest;
+import com.petaverse.dto.PetStatisticsDto;
 import com.petaverse.entity.Pet;
 import com.petaverse.entity.PetStatus;
 import com.petaverse.entity.User;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 import java.util.ArrayList;
 import com.petaverse.dto.UserDto;
 import java.util.HashMap;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -62,6 +64,24 @@ public class PetService {
                 .orElseThrow(() -> new RuntimeException("Evcil hayvan bulunamadı"));
         return convertToDto(pet);
     }
+    
+    public List<PetDto> getPetsByStatus(PetStatus status) {
+        return petRepository.findByStatus(status)
+                .stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+    
+    public List<PetDto> searchPets(PetStatus status, String location, String petType, String breed) {
+        // Basit arama implementasyonu
+        return petRepository.findByStatus(status)
+                .stream()
+                .filter(pet -> location == null || pet.getOwner().getCity().toLowerCase().contains(location.toLowerCase()))
+                .filter(pet -> petType == null || pet.getType().name().equalsIgnoreCase(petType))
+                .filter(pet -> breed == null || pet.getBreed().toLowerCase().contains(breed.toLowerCase()))
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
 
     public List<PetDto> getPetsByOwner(Authentication authentication) {
         String username = authentication.getName();
@@ -70,6 +90,32 @@ public class PetService {
         
         List<Pet> pets = petRepository.findByOwnerId(user.getId());
         return pets.stream().map(this::convertToDto).collect(Collectors.toList());
+    }
+    
+    public List<PetDto> getPetsByStatus(String status) {
+        PetStatus petStatus = PetStatus.valueOf(status);
+        List<Pet> pets = petRepository.findByStatus(petStatus);
+        return pets.stream().map(this::convertToDto).collect(Collectors.toList());
+    }
+    
+    public List<PetDto> searchPets(String query, String type, String breed, String city) {
+        List<Pet> pets = new ArrayList<>();
+        
+        if (query != null && !query.isEmpty()) {
+            pets.addAll(petRepository.findByNameContainingIgnoreCase(query));
+        }
+        if (type != null && !type.isEmpty()) {
+            pets.addAll(petRepository.findByType(com.petaverse.entity.PetType.valueOf(type)));
+        }
+        if (breed != null && !breed.isEmpty()) {
+            pets.addAll(petRepository.findByBreedContainingIgnoreCase(breed));
+        }
+        if (city != null && !city.isEmpty()) {
+            pets.addAll(petRepository.findByOwnerCityContainingIgnoreCase(city));
+        }
+        
+        // Remove duplicates and return
+        return pets.stream().distinct().map(this::convertToDto).collect(Collectors.toList());
     }
 
     public PetDto createPet(CreatePetRequest request, Authentication authentication) {
@@ -109,7 +155,7 @@ public class PetService {
         return convertToDto(savedPet);
     }
 
-    public PetDto updatePet(Long id, UpdatePetRequest request, Authentication authentication) {
+    public Optional<PetDto> updatePet(Long id, UpdatePetRequest request, Authentication authentication) {
         String username = authentication.getName();
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı"));
@@ -122,17 +168,12 @@ public class PetService {
             throw new RuntimeException("Bu evcil hayvanı güncelleme yetkiniz yok");
         }
 
-        // Güncellenebilir alanları güncelle
+        // Update fields if provided
         if (request.getName() != null) pet.setName(request.getName());
         if (request.getType() != null) pet.setType(request.getType());
         if (request.getBreed() != null) pet.setBreed(request.getBreed());
         if (request.getColor() != null) pet.setColor(request.getColor());
-        if (request.getBirthDate() != null) {
-            pet.setBirthDate(request.getBirthDate());
-            // Yaş hesaplama
-            int age = Period.between(request.getBirthDate(), LocalDate.now()).getYears();
-            pet.setAge(age);
-        }
+        if (request.getBirthDate() != null) pet.setBirthDate(request.getBirthDate());
         if (request.getWeight() != null) pet.setWeight(request.getWeight());
         if (request.getGender() != null) pet.setGender(request.getGender());
         if (request.getSize() != null) pet.setSize(request.getSize());
@@ -144,14 +185,15 @@ public class PetService {
         if (request.getSpecialNeeds() != null) pet.setSpecialNeeds(request.getSpecialNeeds());
         if (request.getIsMicrochipped() != null) pet.setMicrochipped(request.getIsMicrochipped());
         if (request.getMicrochipNumber() != null) pet.setMicrochipNumber(request.getMicrochipNumber());
-
+        if (request.getStatus() != null) pet.setStatus(PetStatus.valueOf(request.getStatus()));
+        
         pet.setUpdatedAt(LocalDateTime.now());
 
         Pet updatedPet = petRepository.save(pet);
-        return convertToDto(updatedPet);
+        return Optional.of(convertToDto(updatedPet));
     }
-
-    public void deletePet(Long id, Authentication authentication) {
+    
+    public boolean deletePet(Long id, Authentication authentication) {
         String username = authentication.getName();
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı"));
@@ -165,6 +207,7 @@ public class PetService {
         }
 
         petRepository.delete(pet);
+        return true;
     }
 
     public String uploadPetImage(Long id, MultipartFile file, Authentication authentication) {
@@ -272,15 +315,90 @@ public class PetService {
         return petRepository.findDistinctBreedsByType(com.petaverse.entity.PetType.valueOf(type));
     }
 
-    public Object getPetStats() {
-        Map<String, Object> stats = new HashMap<>();
+    public PetStatisticsDto getPetStats() {
+        long totalPets = petRepository.count();
+        long activePets = petRepository.countByStatus(PetStatus.ACTIVE);
+        long adoptedPets = petRepository.countByStatus(PetStatus.ADOPTED);
+        long lostPets = petRepository.countByStatus(PetStatus.LOST);
+        long deceasedPets = petRepository.countByStatus(PetStatus.DECEASED);
         
-        stats.put("totalPets", petRepository.count());
-        stats.put("activePets", petRepository.countByStatus(PetStatus.ACTIVE));
-        stats.put("adoptedPets", petRepository.countByStatus(PetStatus.ADOPTED));
-        stats.put("petsByType", petRepository.countByType());
+        Map<String, Long> byType = convertToMap(petRepository.countByType());
+        Map<String, Long> byGender = convertToMap(petRepository.countByGender());
+        Map<String, Long> bySize = convertToMap(petRepository.countBySize());
         
-        return stats;
+        long vaccinatedPets = petRepository.countByVaccinated(true);
+        long neuteredPets = petRepository.countByNeutered(true);
+        long microchippedPets = petRepository.countByMicrochipped(true);
+        
+        double averageAge = petRepository.findAverageAge() != null ? petRepository.findAverageAge() : 0.0;
+        double averageWeight = petRepository.findAverageWeight() != null ? petRepository.findAverageWeight() : 0.0;
+        
+        return new PetStatisticsDto(
+            totalPets, activePets, adoptedPets, lostPets, deceasedPets,
+            byType, byGender, bySize, vaccinatedPets, neuteredPets,
+            microchippedPets, averageAge, averageWeight
+        );
+    }
+    
+    public Map<String, Long> getPopularPetTypes() {
+        return convertToMap(petRepository.countByType());
+    }
+    
+    public PetDto updateHealthNotes(Long id, String healthNotes, Authentication authentication) {
+        String username = authentication.getName();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı"));
+
+        Pet pet = petRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Evcil hayvan bulunamadı"));
+
+        if (!pet.getOwner().getId().equals(user.getId())) {
+            throw new RuntimeException("Bu evcil hayvanın sağlık notlarını güncelleme yetkiniz yok");
+        }
+
+        pet.setHealthNotes(healthNotes);
+        pet.setUpdatedAt(LocalDateTime.now());
+
+        Pet updatedPet = petRepository.save(pet);
+        return convertToDto(updatedPet);
+    }
+    
+    public PetDto updateBehaviorNotes(Long id, String behaviorNotes, Authentication authentication) {
+        String username = authentication.getName();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı"));
+
+        Pet pet = petRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Evcil hayvan bulunamadı"));
+
+        if (!pet.getOwner().getId().equals(user.getId())) {
+            throw new RuntimeException("Bu evcil hayvanın davranış notlarını güncelleme yetkiniz yok");
+        }
+
+        pet.setBehaviorNotes(behaviorNotes);
+        pet.setUpdatedAt(LocalDateTime.now());
+
+        Pet updatedPet = petRepository.save(pet);
+        return convertToDto(updatedPet);
+    }
+    
+    public PetDto updateSpecialNeeds(Long id, String specialNeeds, Authentication authentication) {
+        String username = authentication.getName();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı"));
+
+        Pet pet = petRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Evcil hayvan bulunamadı"));
+
+        if (!pet.getOwner().getId().equals(user.getId())) {
+            throw new RuntimeException("Bu evcil hayvanın özel ihtiyaçlarını güncelleme yetkiniz yok");
+        }
+
+        pet.setSpecialNeeds(specialNeeds);
+        pet.setUpdatedAt(LocalDateTime.now());
+
+        Pet updatedPet = petRepository.save(pet);
+        return convertToDto(updatedPet);
     }
 
     public PetDto updatePetStatus(Long id, String status, Authentication authentication) {
@@ -343,5 +461,17 @@ public class PetService {
         }
         
         return dto;
+    }
+    
+    private Map<String, Long> convertToMap(List<Object[]> results) {
+        Map<String, Long> map = new HashMap<>();
+        for (Object[] result : results) {
+            if (result.length == 2 && result[0] != null && result[1] != null) {
+                String key = result[0].toString();
+                Long value = ((Number) result[1]).longValue();
+                map.put(key, value);
+            }
+        }
+        return map;
     }
 } 

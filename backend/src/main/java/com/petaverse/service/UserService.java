@@ -10,7 +10,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @Service
 @Transactional
@@ -141,5 +144,110 @@ public class UserService {
         dto.setCreatedAt(user.getCreatedAt());
         dto.setLastLoginAt(user.getLastLoginAt());
         return dto;
+    }
+    
+    public Optional<UserDto> getUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .map(this::convertToDto);
+    }
+    
+    public List<UserDto> getAllUsers(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return userRepository.findAll(pageable).getContent().stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+    
+    public Optional<UserDto> updateUserProfile(String email, UserDto userDto) {
+        return userRepository.findByEmail(email)
+                .map(user -> {
+                    if (userDto.getFirstName() != null) user.setFirstName(userDto.getFirstName());
+                    if (userDto.getLastName() != null) user.setLastName(userDto.getLastName());
+                    if (userDto.getPhoneNumber() != null) user.setPhoneNumber(userDto.getPhoneNumber());
+                    if (userDto.getBio() != null) user.setBio(userDto.getBio());
+                    if (userDto.getAddress() != null) user.setAddress(userDto.getAddress());
+                    if (userDto.getCity() != null) user.setCity(userDto.getCity());
+                    if (userDto.getCountry() != null) user.setCountry(userDto.getCountry());
+                    if (userDto.getLatitude() != null) user.setLatitude(userDto.getLatitude());
+                    if (userDto.getLongitude() != null) user.setLongitude(userDto.getLongitude());
+                    
+                    user.setUpdatedAt(LocalDateTime.now());
+                    User updatedUser = userRepository.save(user);
+                    return convertToDto(updatedUser);
+                });
+    }
+    
+    public Optional<UserDto> updateUserStatus(Long id, String status, Authentication authentication) {
+        // Check if user has admin role
+        String currentUserEmail = authentication.getName();
+        User currentUser = userRepository.findByEmail(currentUserEmail)
+                .orElseThrow(() -> new RuntimeException("Current user not found"));
+        
+        if (!currentUser.getRole().name().equals("ADMIN")) {
+            throw new RuntimeException("Insufficient permissions");
+        }
+        
+        return userRepository.findById(id)
+                .map(user -> {
+                    user.setStatus(com.petaverse.entity.UserStatus.valueOf(status));
+                    user.setUpdatedAt(LocalDateTime.now());
+                    User updatedUser = userRepository.save(user);
+                    return convertToDto(updatedUser);
+                });
+    }
+    
+    public boolean deleteUser(Long id, Authentication authentication) {
+        String currentUserEmail = authentication.getName();
+        User currentUser = userRepository.findByEmail(currentUserEmail)
+                .orElseThrow(() -> new RuntimeException("Current user not found"));
+        
+        // Only admin or the user themselves can delete
+        if (!currentUser.getRole().name().equals("ADMIN") && !currentUser.getId().equals(id)) {
+            return false;
+        }
+        
+        return userRepository.findById(id)
+                .map(user -> {
+                    userRepository.delete(user);
+                    return true;
+                })
+                .orElse(false);
+    }
+    
+    public List<UserDto> searchUsers(String name, String location, String role) {
+        return userRepository.searchUsers(name, location, role).stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+    
+    public boolean followUser(String followerEmail, Long userId) {
+        User follower = userRepository.findByEmail(followerEmail)
+                .orElseThrow(() -> new RuntimeException("Follower not found"));
+        User userToFollow = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User to follow not found"));
+        
+        // Implementation for following user
+        // This would typically involve a separate Follow entity
+        return true;
+    }
+    
+    public boolean unfollowUser(String followerEmail, Long userId) {
+        User follower = userRepository.findByEmail(followerEmail)
+                .orElseThrow(() -> new RuntimeException("Follower not found"));
+        User userToUnfollow = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User to unfollow not found"));
+        
+        // Implementation for unfollowing user
+        return true;
+    }
+    
+    public List<UserDto> getUserFollowers(Long userId) {
+        // Implementation for getting followers
+        return List.of();
+    }
+    
+    public List<UserDto> getUserFollowing(Long userId) {
+        // Implementation for getting following
+        return List.of();
     }
 } 
