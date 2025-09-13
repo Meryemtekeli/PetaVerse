@@ -31,4 +31,7 @@ public interface AdoptionListingRepository extends JpaRepository<AdoptionListing
     List<AdoptionListing> findByOwnerIdAndStatus(Long ownerId, com.petaverse.entity.AdoptionStatus status);
     
     List<AdoptionListing> findByUserId(Long userId);
+    
+    // Map-related queries
+    List<AdoptionListing> findByStatusAndLatitudeIsNotNullAndLongitudeIsNotNull(com.petaverse.entity.AdoptionStatus status);
 }

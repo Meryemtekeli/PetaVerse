@@ -1,8 +1,10 @@
 package com.petaverse.repository;
 
+import com.petaverse.entity.ChatRoom;
 import com.petaverse.entity.Message;
 import com.petaverse.entity.MessageStatus;
 import com.petaverse.entity.MessageType;
+import com.petaverse.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -38,4 +40,14 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     List<Message> findByConversationIdAndUserId(String conversationId, Long userId);
     
     List<Message> findByConversationIdAndReceiverIdAndStatus(String conversationId, Long receiverId, MessageStatus status);
+    
+    // Chat room related methods
+    @Query("SELECT m FROM Message m WHERE m.chatRoom = :chatRoom ORDER BY m.createdAt ASC")
+    List<Message> findByChatRoomOrderByCreatedAtAsc(@Param("chatRoom") ChatRoom chatRoom);
+    
+    @Query("SELECT m FROM Message m WHERE m.chatRoom = :chatRoom AND m.sender != :sender AND m.isRead = false")
+    List<Message> findByChatRoomAndSenderNotAndIsReadFalse(@Param("chatRoom") ChatRoom chatRoom, @Param("sender") User sender);
+    
+    @Query("SELECT m FROM Message m WHERE m.chatRoom.id = :chatRoomId ORDER BY m.createdAt ASC")
+    List<Message> findByChatRoomIdOrderByCreatedAtAsc(@Param("chatRoomId") Long chatRoomId);
 }

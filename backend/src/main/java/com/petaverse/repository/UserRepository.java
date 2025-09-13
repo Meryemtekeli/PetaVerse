@@ -63,4 +63,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     
     @Query("SELECT u FROM User u WHERE (u.name ILIKE %:name% OR u.username ILIKE %:name%) AND (u.location ILIKE %:location%) AND (u.role = :role OR :role IS NULL)")
     List<User> searchUsers(@Param("name") String name, @Param("location") String location, @Param("role") String role);
+    
+    // Map-related queries
+    List<User> findByRoleAndLatitudeIsNotNullAndLongitudeIsNotNull(UserRole role);
 } 
