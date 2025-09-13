@@ -14,7 +14,9 @@ import RegisterPage from './pages/Auth/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import ProfilePage from './pages/ProfilePage';
 import MapPage from './pages/MapPage';
-import ChatPage from './pages/ChatPage';
+import { ChatPage } from './components/Chat/ChatPage';
+import { AnalyticsDashboard } from './pages/Analytics/AnalyticsDashboard';
+import { AIDashboard } from './pages/AI/AIDashboard';
 import AdminPanel from './pages/AdminPanel';
 
 // Pet Pages
@@ -43,7 +45,7 @@ import CalendarPage from './pages/Calendar/CalendarPage';
 import ShopPage from './pages/Shop/ShopPage';
 
 // Badges Pages
-import BadgesPage from './pages/Badges/BadgesPage';
+import BadgeDashboard from './pages/Badges/BadgeDashboard';
 
 function App() {
   return (
@@ -103,7 +105,17 @@ function App() {
             } />
             <Route path="/badges" element={
               <ProtectedRoute>
-                <BadgesPage />
+                <BadgeDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/analytics" element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AnalyticsDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/ai" element={
+              <ProtectedRoute>
+                <AIDashboard />
               </ProtectedRoute>
             } />
             <Route path="/admin" element={
