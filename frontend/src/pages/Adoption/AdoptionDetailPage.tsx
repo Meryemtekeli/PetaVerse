@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { chatApi } from '../../services/api/chatApi';
+import { useAuth } from '../../store/slices/authSlice';
+import { PaymentModal } from '../../components/Payment/PaymentModal';
 import { 
   HeartIcon, 
   MapPinIcon, 
@@ -40,11 +43,13 @@ interface AdoptionListing {
 const AdoptionDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [listing, setListing] = useState<AdoptionListing | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isLiked, setIsLiked] = useState(false);
   const [showContactForm, setShowContactForm] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   useEffect(() => {
     // TODO: Replace with actual API call
@@ -103,6 +108,31 @@ const AdoptionDetailPage: React.FC = () => {
 
   const handleContact = () => {
     setShowContactForm(true);
+  };
+
+  const handleStartChat = async () => {
+    if (!user || !listing) return;
+    
+    try {
+      // Create or get chat room
+      const chatRoom = await chatApi.createOrGetChatRoom(listing.id, user.id);
+      
+      // Navigate to chat page with the specific room
+      navigate(`/chat?room=${chatRoom.id}`);
+    } catch (error) {
+      console.error('Failed to start chat:', error);
+      // Fallback to contact form
+      setShowContactForm(true);
+    }
+  };
+
+  const handlePayment = () => {
+    setShowPaymentModal(true);
+  };
+
+  const handlePaymentSuccess = (payment: any) => {
+    console.log('Payment successful:', payment);
+    // You could show a success message or redirect
   };
 
   const handleAdopt = () => {
@@ -241,13 +271,33 @@ const AdoptionDetailPage: React.FC = () => {
                   Sahiplenmek İstiyorum
                 </button>
                 
-                <button
-                  onClick={handleContact}
-                  className="w-full bg-gray-100 text-gray-700 py-3 px-4 rounded-lg font-semibold hover:bg-gray-200 transition-colors"
-                >
-                  <ChatBubbleLeftIcon className="h-5 w-5 inline mr-2" />
-                  İletişime Geç
-                </button>
+                {user && user.id !== listing.owner.id ? (
+                  <div className="space-y-3">
+                    <button
+                      onClick={handleStartChat}
+                      className="w-full bg-green-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-green-700 transition-colors"
+                    >
+                      <ChatBubbleLeftIcon className="h-5 w-5 inline mr-2" />
+                      Sohbet Başlat
+                    </button>
+                    {listing.adoptionFee > 0 && (
+                      <button
+                        onClick={handlePayment}
+                        className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                      >
+                        💳 Ödeme Yap
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <button
+                    onClick={handleContact}
+                    className="w-full bg-gray-100 text-gray-700 py-3 px-4 rounded-lg font-semibold hover:bg-gray-200 transition-colors"
+                  >
+                    <ChatBubbleLeftIcon className="h-5 w-5 inline mr-2" />
+                    İletişime Geç
+                  </button>
+                )}
 
                 <button
                   onClick={handleLike}
@@ -336,6 +386,17 @@ const AdoptionDetailPage: React.FC = () => {
             </form>
           </div>
         </div>
+      )}
+
+      {/* Payment Modal */}
+      {listing && (
+        <PaymentModal
+          isOpen={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          adoptionListingId={listing.id}
+          adoptionFee={listing.adoptionFee}
+          onPaymentSuccess={handlePaymentSuccess}
+        />
       )}
     </div>
   );

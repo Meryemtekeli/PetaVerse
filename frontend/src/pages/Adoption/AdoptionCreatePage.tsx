@@ -9,6 +9,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { adoptionApi, CreateAdoptionListingRequest } from '../../services/api/adoptionApi';
 import { petApi } from '../../services/api/petApi';
+import { GoogleMapComponent } from '../../components/Maps/GoogleMapComponent';
 
 interface Pet {
   id: number;
@@ -34,6 +35,7 @@ const AdoptionCreatePage: React.FC = () => {
     listingType: 'ADOPTION',
     adoptionFee: 0
   });
+  const [selectedLocation, setSelectedLocation] = useState<{ lat: number; lng: number } | null>(null);
 
   useEffect(() => {
     fetchUserPets();
@@ -63,6 +65,11 @@ const AdoptionCreatePage: React.FC = () => {
   const handlePetSelection = (petId: number) => {
     setSelectedPet(petId);
     setFormData(prev => ({ ...prev, petId }));
+  };
+
+  const handleLocationSelect = (position: { lat: number; lng: number }) => {
+    setSelectedLocation(position);
+    // You could also reverse geocode here to get the address
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -208,6 +215,28 @@ const AdoptionCreatePage: React.FC = () => {
                     placeholder="Şehir, İlçe"
                     required
                   />
+                  
+                  {/* Map for location selection */}
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Haritadan Konum Seçin (Opsiyonel)
+                    </label>
+                    <div className="h-48 rounded-lg overflow-hidden border">
+                      <GoogleMapComponent
+                        center={{ lat: selectedLocation?.lat || 39.925533, lng: selectedLocation?.lng || 32.866287 }}
+                        zoom={10}
+                        markers={[]}
+                        onMapClick={handleLocationSelect}
+                        height="100%"
+                        showControls={true}
+                      />
+                    </div>
+                    {selectedLocation && (
+                      <div className="mt-2 text-sm text-green-600">
+                        ✓ Konum seçildi: {selectedLocation.lat.toFixed(6)}, {selectedLocation.lng.toFixed(6)}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div>
