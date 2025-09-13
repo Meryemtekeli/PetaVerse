@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/adoption")
@@ -28,7 +29,7 @@ public class AdoptionController {
 
     @GetMapping
     @Operation(summary = "Sahiplendirme ilanlarını listele", description = "Sayfalama ile sahiplendirme ilanlarını listeler")
-    public ResponseEntity<Page<AdoptionListingDto>> getAllListings(
+    public ResponseEntity<List<AdoptionListingDto>> getAllListings(
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String breed,
             @RequestParam(required = false) String city,
@@ -37,15 +38,18 @@ public class AdoptionController {
             @RequestParam(required = false) Boolean isVerified,
             Pageable pageable) {
         
-        Page<AdoptionListingDto> listings = adoptionService.getAllListings(type, breed, city, status, isUrgent, isVerified, pageable);
+        List<AdoptionListingDto> listings = adoptionService.getAllListings(type, breed, city, status, isUrgent, isVerified, pageable);
         return ResponseEntity.ok(listings);
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "İlan detayı", description = "ID ile sahiplendirme ilanı detayını getirir")
     public ResponseEntity<AdoptionListingDto> getListingById(@PathVariable Long id) {
-        AdoptionListingDto listing = adoptionService.getListingById(id);
-        return ResponseEntity.ok(listing);
+        Optional<AdoptionListingDto> listing = adoptionService.getListingById(id);
+        if (listing.isPresent()) {
+            return ResponseEntity.ok(listing.get());
+        }
+        return ResponseEntity.notFound().build();
     }
 
     @GetMapping("/my-listings")
@@ -72,8 +76,11 @@ public class AdoptionController {
             @Valid @RequestBody UpdateAdoptionListingRequest request,
             Authentication authentication) {
         
-        AdoptionListingDto listing = adoptionService.updateListing(id, request, authentication);
-        return ResponseEntity.ok(listing);
+        Optional<AdoptionListingDto> listing = adoptionService.updateListing(id, request, authentication);
+        if (listing.isPresent()) {
+            return ResponseEntity.ok(listing.get());
+        }
+        return ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")
@@ -168,32 +175,41 @@ public class AdoptionController {
 
     @PutMapping("/{id}/status")
     @Operation(summary = "İlan durumu güncelle", description = "İlan durumunu günceller")
-    public ResponseEntity<AdoptionListingDto> updateListingStatus(
+    public ResponseEntity<Void> updateListingStatus(
             @PathVariable Long id,
             @RequestParam String status,
             Authentication authentication) {
         
-        AdoptionListingDto listing = adoptionService.updateListingStatus(id, status, authentication);
-        return ResponseEntity.ok(listing);
+        boolean updated = adoptionService.updateListingStatus(id, status, authentication);
+        if (updated) {
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.notFound().build();
     }
 
     @PostMapping("/{id}/verify")
     @Operation(summary = "İlan doğrula", description = "İlanı doğrulanmış olarak işaretler (Admin)")
-    public ResponseEntity<AdoptionListingDto> verifyListing(
+    public ResponseEntity<Void> verifyListing(
             @PathVariable Long id,
             Authentication authentication) {
         
-        AdoptionListingDto listing = adoptionService.verifyListing(id, authentication);
-        return ResponseEntity.ok(listing);
+        boolean verified = adoptionService.verifyListing(id, authentication);
+        if (verified) {
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.notFound().build();
     }
 
     @PostMapping("/{id}/mark-urgent")
     @Operation(summary = "Acil işaretle", description = "İlanı acil olarak işaretler")
-    public ResponseEntity<AdoptionListingDto> markAsUrgent(
+    public ResponseEntity<Void> markAsUrgent(
             @PathVariable Long id,
             Authentication authentication) {
         
-        AdoptionListingDto listing = adoptionService.markAsUrgent(id, authentication);
-        return ResponseEntity.ok(listing);
+        boolean marked = adoptionService.markAsUrgent(id, authentication);
+        if (marked) {
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.notFound().build();
     }
 } 

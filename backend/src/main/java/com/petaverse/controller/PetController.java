@@ -3,7 +3,9 @@ package com.petaverse.controller;
 import com.petaverse.dto.PetDto;
 import com.petaverse.dto.CreatePetRequest;
 import com.petaverse.dto.UpdatePetRequest;
+import com.petaverse.dto.PetStatisticsDto;
 import com.petaverse.service.PetService;
+import java.util.Map;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/pets")
@@ -67,8 +70,11 @@ public class PetController {
             @PathVariable Long id,
             @Valid @RequestBody UpdatePetRequest request,
             Authentication authentication) {
-        PetDto pet = petService.updatePet(id, request, authentication);
-        return ResponseEntity.ok(pet);
+        Optional<PetDto> pet = petService.updatePet(id, request, authentication);
+        if (pet.isPresent()) {
+            return ResponseEntity.ok(pet.get());
+        }
+        return ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")
@@ -146,9 +152,46 @@ public class PetController {
 
     @GetMapping("/stats")
     @Operation(summary = "Evcil hayvan istatistikleri", description = "Platform evcil hayvan istatistiklerini getirir")
-    public ResponseEntity<Object> getPetStats() {
-        Object stats = petService.getPetStats();
+    public ResponseEntity<PetStatisticsDto> getPetStats() {
+        PetStatisticsDto stats = petService.getPetStats();
         return ResponseEntity.ok(stats);
+    }
+    
+    @GetMapping("/popular-types")
+    @Operation(summary = "Popüler evcil hayvan türleri", description = "En popüler evcil hayvan türlerini getirir")
+    public ResponseEntity<Map<String, Long>> getPopularPetTypes() {
+        Map<String, Long> popularTypes = petService.getPopularPetTypes();
+        return ResponseEntity.ok(popularTypes);
+    }
+    
+    @PatchMapping("/{id}/health-notes")
+    @Operation(summary = "Sağlık notları güncelle", description = "Evcil hayvanın sağlık notlarını günceller")
+    public ResponseEntity<PetDto> updateHealthNotes(
+            @PathVariable Long id,
+            @RequestParam String healthNotes,
+            Authentication authentication) {
+        PetDto pet = petService.updateHealthNotes(id, healthNotes, authentication);
+        return ResponseEntity.ok(pet);
+    }
+    
+    @PatchMapping("/{id}/behavior-notes")
+    @Operation(summary = "Davranış notları güncelle", description = "Evcil hayvanın davranış notlarını günceller")
+    public ResponseEntity<PetDto> updateBehaviorNotes(
+            @PathVariable Long id,
+            @RequestParam String behaviorNotes,
+            Authentication authentication) {
+        PetDto pet = petService.updateBehaviorNotes(id, behaviorNotes, authentication);
+        return ResponseEntity.ok(pet);
+    }
+    
+    @PatchMapping("/{id}/special-needs")
+    @Operation(summary = "Özel ihtiyaçlar güncelle", description = "Evcil hayvanın özel ihtiyaçlarını günceller")
+    public ResponseEntity<PetDto> updateSpecialNeeds(
+            @PathVariable Long id,
+            @RequestParam String specialNeeds,
+            Authentication authentication) {
+        PetDto pet = petService.updateSpecialNeeds(id, specialNeeds, authentication);
+        return ResponseEntity.ok(pet);
     }
 
     @PostMapping("/{id}/status")
