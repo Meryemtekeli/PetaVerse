@@ -136,6 +136,6 @@ Bu proje MIT lisansı altında lisanslanmıştır.
 
 ## İletişim
 
-Proje Lideri/Tasarımcısı - (@MeryemTekeli)
+Proje Lideri/Tasarımcısı - (https://github.com/Meryemtekeli)
 
 Proje Linki: https://github.com/Meryemtekeli/PetaVerse
