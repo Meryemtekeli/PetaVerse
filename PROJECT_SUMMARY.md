@@ -127,7 +127,7 @@ npm start
 ## 📞 Destek
 Proje ile ilgili sorularınız için:
 - GitHub Issues
-- E-posta: support@petaverse.com
+- E-posta: meeryemtekeli@gmail.com
 - Dokümantasyon: `/docs` klasörü
 
 ---
